@@ -1,0 +1,56 @@
+# src/main/resources/application.yml
+
+spring:
+  application:
+    name: wave-forecast-israel
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/wavedb}
+    username: ${SPRING_DATASOURCE_USERNAME:wave}
+    password: ${SPRING_DATASOURCE_PASSWORD:wave_dev_password}
+
+  jpa:
+    hibernate:
+      # Flyway owns the schema. Never let Hibernate touch it.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.time_zone: UTC
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2s
+
+  jackson:
+    default-property-inclusion: non_null
+
+openmeteo:
+  marine-url: ${OPENMETEO_MARINE_URL:https://marine-api.open-meteo.com/v1/marine}
+  forecast-url: ${OPENMETEO_FORECAST_URL:https://api.open-meteo.com/v1/forecast}
+  timezone: Asia/Jerusalem
+  forecast-days: 7
+  # Delay between spot fetches, to stay polite to a free public API.
+  inter-request-delay-ms: 250
+
+forecast:
+  ingestion:
+    # Top of every hour. Open-Meteo's wave models refresh a couple of times
+    # a day, but atmospheric data updates hourly.
+    cron: "0 0 * * * *"
+    enabled: true
+
+logging:
+  level:
+    com.eyal.waveforecast: DEBUG
+
+server:
+  port: 8080
